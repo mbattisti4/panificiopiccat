@@ -4,46 +4,25 @@ import styled from "styled-components";
 
 const CardContainer = styled.div`
   ${(props) => {
-    console.log("xxx => ", props);
-    return props.important && "background-color: blue;";
+    //console.log("xxx => ", props);
+    return props.quantity > 0 && "background-color: yellow;";
   }}
   padding: 5px;
   border-radius: 10px;
-  border: 1px solid red;
+  border: 1px solid blue;
 `;
 
 export default function TodoListItem({ todo }) {
   const dispatch = useDispatch();
 
   return (
-    <tr>
-      <td>{todo.id}</td>
-      <td>{todo.description}</td>
+    <tr>      
+      <td><CardContainer quantity={todo.quantity}>{todo.description.toLowerCase()}</CardContainer></td>
       <td>
-        <CardContainer important>{todo.quantity}</CardContainer>
-      </td>
-      {/* <td>
-        {new Date(todo.lastUpdate).toLocaleDateString("IT-it")}&nbsp;
-        {new Date(todo.lastUpdate).toLocaleTimeString("IT-it")}
-      </td> */}
-      <td>
-        {todo.isCompleted ? (
-          <button onClick={() => dispatch(deleteTodo(todo))}>
-            Delete item!
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              todo = { ...todo, isCompleted: true };
-              dispatch(editTodo(todo));
-            }}
-          >
-            Mark as completed
-          </button>
-        )}
+        {todo.quantity}
       </td>
       <td>
-        <button onClick={() => dispatch(editTodo(todo))}>Edit</button>
+        {/* <button onClick={() => dispatch(editTodo(todo))}>Edit</button> */}
         <button
           onClick={() => {
             todo = { ...todo, quantity: todo.quantity + 1 };
@@ -63,6 +42,27 @@ export default function TodoListItem({ todo }) {
           -
         </button>
       </td>
+      {/* <td>{todo.id}</td> */}
+      {/* <td>
+        {new Date(todo.lastUpdate).toLocaleDateString("IT-it")}&nbsp;
+        {new Date(todo.lastUpdate).toLocaleTimeString("IT-it")}
+      </td> */}
+      {/* <td>
+        {todo.isCompleted ? (
+          <button onClick={() => dispatch(deleteTodo(todo))}>
+            Delete item!
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              todo = { ...todo, isCompleted: true };
+              dispatch(editTodo(todo));
+            }}
+          >
+            Mark as completed
+          </button>
+        )}
+      </td> */}
     </tr>
   );
 }

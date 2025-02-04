@@ -4,7 +4,7 @@ import { todosUpdated } from "./todosSlice";
 
 const ENDPOINT_LOCAL = "/api";
 const ENDPOINT_CASSANOVA = "https://api.cassanova.com";
-const ENDPOINT = ENDPOINT_LOCAL;
+const ENDPOINT = ENDPOINT_CASSANOVA;
 
 async function getToken() {
   try {
@@ -20,7 +20,7 @@ async function getToken() {
     );
 
     var token = response.data;
-    console.log("token" + token);
+    console.log("token", token);
 
     return token;
   } catch (e) {
@@ -33,10 +33,13 @@ export const loadTodos = () => async (dispatch) => {
     dispatch(loadingStarted());
     var response = await getData();
 
-    var todos = response.data;
-    console.log(todos.products);
+    let newObjectArray = response.data.products.map((item) =>
+      Object.assign({}, item, { quantity: 0 })
+    );
 
-    dispatch(loadingCompleted(todos.products));
+    console.log(newObjectArray);
+
+    dispatch(loadingCompleted(newObjectArray));
   } catch (e) {
     dispatch(loadingError(e));
   }
@@ -46,7 +49,9 @@ export const editTodo = (todo) => async (dispatch, getState) => {
   try {
     dispatch(loadingStarted());
 
-    const updatedTodo = await putData(todo);
+    console.log("thunks - editTodo");
+    //const updatedTodo = await putData(todo);
+    const updatedTodo = todo;
     let todosCopy = getState().todos.value;
 
     todosCopy = update(getState().todos.value, todo.id, updatedTodo);
@@ -82,7 +87,7 @@ export const createTodo = (todo) => async (dispatch, getState) => {
 async function getData() {
   if (ENDPOINT === ENDPOINT_CASSANOVA) {
     var token = await getToken();
-    var response = await axios.get(`${ENDPOINT}?start=1&limit=100`, {
+    var response = await axios.get(`${ENDPOINT}/products?start=1&limit=100`, {
       headers: {
         "Content-Type": "application/json",
         "X-Version": "1.0.0",
