@@ -3,14 +3,12 @@ import { useDispatch } from "react-redux";
 import styled from "styled-components";
 
 const CardContainer = styled.div`
-  ${(props) => {
-    //console.log("xxx => ", props);
-    return props.quantity > 0 && "background-color: yellow;";
-  }}
-  padding: 5px;
-  border-radius: 10px;
-  border: 1px solid blue;
-`;
+  ${(props) => props.quantity > 0 && `
+      background-color: yellow;  
+      padding: 5px;
+      border-radius: 10px;
+      border: 1px solid blue;`
+}`;
 
 export default function TodoListItem({ todo }) {
   const dispatch = useDispatch();
@@ -20,6 +18,12 @@ export default function TodoListItem({ todo }) {
       <td><CardContainer quantity={todo.quantity}>{todo.description.toLowerCase()}</CardContainer></td>
       <td>
         {todo.quantity}
+      </td>
+      <td>
+        {todo.prices[0].value}
+      </td>
+      <td>
+        {todo.prices[0].value * todo.quantity}
       </td>
       <td>
         {/* <button onClick={() => dispatch(editTodo(todo))}>Edit</button> */}

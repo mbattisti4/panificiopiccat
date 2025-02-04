@@ -26,6 +26,15 @@ export default function TodoList() {
         <>
           <h2>Completed:</h2>
           <table>
+            <thead>
+              <tr>
+                <th>Articolo</th>
+                <th>Quantità</th>
+                <th>Prezzo</th>
+                <th>Totale</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
             <tbody>
               {completedTodos.map((todo) => (
                 <TodoListItem key={todo.id} todo={todo}></TodoListItem>
@@ -34,6 +43,13 @@ export default function TodoList() {
           </table>
           <h2>Incompleted:</h2>
           <table>
+          <thead>
+              <tr>
+                <th>Articolo</th>
+                <th>Quantità</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
             <tbody>
               {uncompletedTodos.map((todo) => (
                 <TodoListItem key={todo.id} todo={todo}></TodoListItem>

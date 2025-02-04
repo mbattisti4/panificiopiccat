@@ -20,7 +20,7 @@ async function getToken() {
     );
 
     var token = response.data;
-    console.log("token", token);
+    //console.log("token", token);
 
     return token;
   } catch (e) {
@@ -32,6 +32,15 @@ export const loadTodos = () => async (dispatch) => {
   try {
     dispatch(loadingStarted());
     var response = await getData();
+    var salesModes = await getSalesModes();
+    var customers = await getCustomers();
+    var organizations = await getOrganizations();
+    var taxes = await getTaxes();
+
+    console.log("salesModes", salesModes);
+    console.log("customers", customers);
+    console.log("organizations", organizations);
+    console.log("taxes", taxes);
 
     let newObjectArray = response.data.products.map((item) =>
       Object.assign({}, item, { quantity: 0 })
@@ -84,10 +93,92 @@ export const createTodo = (todo) => async (dispatch, getState) => {
   }
 };
 
+export const placeOrder = () => async (dispatch, getState) => {
+  try {
+    console.log(
+      "thunks - placeOrder",
+      getState().todos.value.filter((i) => i.quantity > 0)
+    );
+    await placeOrderInternal(
+      getState().todos.value.filter((i) => i.quantity > 0)
+    );
+    let todosCopy = getState().todos.value.filter((i) => i.id !== 11111111111);
+
+    dispatch(todosUpdated(todosCopy));
+  } catch (e) {
+    dispatch(loadingError(e));
+  }
+};
+
 async function getData() {
   if (ENDPOINT === ENDPOINT_CASSANOVA) {
     var token = await getToken();
     var response = await axios.get(`${ENDPOINT}/products?start=1&limit=100`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Version": "1.0.0",
+        Authorization: token.token_type + " " + token.access_token,
+      },
+    });
+  } else {
+    var response = await axios.get(`${ENDPOINT}`);
+  }
+
+  console.log(response);
+
+  return response;
+}
+
+async function getSalesModes() {
+  if (ENDPOINT === ENDPOINT_CASSANOVA) {
+    var token = await getToken();
+    var response = await axios.get(`${ENDPOINT}/salesmodes?start=1&limit=100`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Version": "1.0.0",
+        Authorization: token.token_type + " " + token.access_token,
+      },
+    });
+  } else {
+    var response = await axios.get(`${ENDPOINT}`);
+  }
+
+  console.log(response);
+
+  return response;
+}
+
+async function getOrganizations() {
+  var token = await getToken();
+  var response = await axios.get(
+    `${ENDPOINT}/organizations?start=1&limit=100`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Version": "1.0.0",
+        Authorization: token.token_type + " " + token.access_token,
+      },
+    }
+  );
+  return response;
+}
+
+async function getTaxes() {
+  var token = await getToken();
+  var response = await axios.get(`${ENDPOINT}/taxes?start=1&limit=100`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-Version": "1.0.0",
+      Authorization: token.token_type + " " + token.access_token,
+    },
+  });
+  return response;
+}
+
+async function getCustomers() {
+  if (ENDPOINT === ENDPOINT_CASSANOVA) {
+    var token = await getToken();
+    var response = await axios.get(`${ENDPOINT}/customers?start=1&limit=100`, {
       headers: {
         "Content-Type": "application/json",
         "X-Version": "1.0.0",
@@ -144,6 +235,28 @@ async function deleteData(todo) {
   return response.data;
 }
 
+async function placeOrderInternal(todos) {
+  console.log("placeOrderInternal", todos);
+
+  var token = await getToken();
+  const order = generateOrder(todos);
+
+  console.log("placeOrderInternal", order);
+  var response = await axios.post(
+    `${ENDPOINT}/documents/orders/batch`,
+    { create: [order] },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Version": "1.0.0",
+        "X-Requested-With": "*",
+        Authorization: `${token.token_type} ${token.access_token}`,
+      },
+    }
+  );
+  return response.data;
+}
+
 async function postData(newTodo) {
   if (ENDPOINT === ENDPOINT_CASSANOVA) {
     var token = await getToken();
@@ -165,4 +278,72 @@ function update(arr, id, updatedData) {
   return arr.map((item) =>
     item.id === id ? { ...item, ...updatedData } : item
   );
+}
+
+function generateOrder(todos) {
+  console.log("generateOrder", todos);
+  var rowsFromProducts = [];
+
+  let index = 0;
+  todos.forEach((e) => {
+    rowsFromProducts.push({
+      rowNumber: index,
+      idProductVariant: e.variants[0].id,
+      idDepartment: e.idDepartment,
+      idTax: "30049607-cf46-48ee-a284-24b1e361704c", // TODO
+      idSalesMode: "", // TODO
+      quantity: e.quantity,
+      price: e.prices[0].value,
+      subtotal: false,
+      shippingCost: false,
+      percentageVariation: 0,
+      variation: null,
+      variationType: null,
+      note: "note da utilizzare???",
+      rowModifierValues: null,
+      menu: false,
+      composition: false,
+      rowCourseChoices: null,
+      rowComponentChoices: null,
+    });
+
+    index++;
+  });
+
+  console.log("generateOrder2", rowsFromProducts);
+
+  var order = {
+    externalId: "1001",
+    internalWorkflowStatus: "PENDING",
+    isExternalOrder: false,
+    status: "PARTIALLY_PROCESSED",
+    date: Date.now(),
+    dueDate: null,
+    deliveryMode: "PICKUP",
+    destinationStreet: null,
+    destinationCountry: null,
+    destinationCity: null,
+    destinationZipcode: null,
+    destinationDistrict: null,
+    otherDeliveryDestination: null,
+    transportNote: null,
+    rejectionReason: null,
+    phoneNumber: "3470453431",
+    prepay: false,
+    prepaymentStatus: "WAITING",
+    prepaymentTransactionId: null,
+    idTable: null,
+    document: {
+      idSalesPoint: 1212, // TODO
+      idOrganization: "6a4fc711-9cc8-4650-a6df-9586ead1250d", // TODO
+      idCustomer: "010ef016-236e-45ed-a946-877ddc913084", // TODO
+      taxFree: false,
+      amount: 100, // TODO
+      note: "Note documento",
+      email: "mbattisti4@gmail.com", // TODO
+      rows: rowsFromProducts,
+    },
+  };
+
+  return order;
 }
