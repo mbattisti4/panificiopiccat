@@ -36,11 +36,13 @@ export const loadTodos = () => async (dispatch) => {
     var customers = await getCustomers();
     var organizations = await getOrganizations();
     var taxes = await getTaxes();
+    var orders = await getOrders();
 
     console.log("salesModes", salesModes);
     console.log("customers", customers);
     console.log("organizations", organizations);
     console.log("taxes", taxes);
+    console.log("orders", orders);
 
     let newObjectArray = response.data.products.map((item) =>
       Object.assign({}, item, { quantity: 0 })
@@ -175,6 +177,21 @@ async function getTaxes() {
   return response;
 }
 
+async function getOrders() {
+  var token = await getToken();
+  var response = await axios.get(
+    `${ENDPOINT}/documents/orders?start=1&limit=100&datetimeFrom=2025-01-01`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Version": "1.0.0",
+        Authorization: token.token_type + " " + token.access_token,
+      },
+    }
+  );
+  return response;
+}
+
 async function getCustomers() {
   if (ENDPOINT === ENDPOINT_CASSANOVA) {
     var token = await getToken();
@@ -291,20 +308,14 @@ function generateOrder(todos) {
       idProductVariant: e.variants[0].id,
       idDepartment: e.idDepartment,
       idTax: "30049607-cf46-48ee-a284-24b1e361704c", // TODO
-      idSalesMode: "", // TODO
+      //idSalesMode: "", // TODO
       quantity: e.quantity,
       price: e.prices[0].value,
       subtotal: false,
       shippingCost: false,
-      percentageVariation: 0,
-      variation: null,
-      variationType: null,
       note: "note da utilizzare???",
-      rowModifierValues: null,
       menu: false,
       composition: false,
-      rowCourseChoices: null,
-      rowComponentChoices: null,
     });
 
     index++;
