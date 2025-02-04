@@ -37,12 +37,14 @@ export const loadTodos = () => async (dispatch) => {
     var organizations = await getOrganizations();
     var taxes = await getTaxes();
     var orders = await getOrders();
+    var order = await getOrder("79844d94-13ac-425f-b2b6-ff61d797c45e");
 
-    console.log("salesModes", salesModes);
+    /*console.log("salesModes", salesModes);
     console.log("customers", customers);
     console.log("organizations", organizations);
-    console.log("taxes", taxes);
+    console.log("taxes", taxes);*/
     console.log("orders", orders);
+    console.log("order", orders);
 
     let newObjectArray = response.data.products.map((item) =>
       Object.assign({}, item, { quantity: 0 })
@@ -180,7 +182,7 @@ async function getTaxes() {
 async function getOrders() {
   var token = await getToken();
   var response = await axios.get(
-    `${ENDPOINT}/documents/orders?start=1&limit=100&datetimeFrom=2025-01-01`,
+    `${ENDPOINT}/documents/orders?start=1&limit=100&datetimeFrom="2025-02-03"`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -189,6 +191,18 @@ async function getOrders() {
       },
     }
   );
+  return response;
+}
+
+async function getOrder(id) {
+  var token = await getToken();
+  var response = await axios.get(`${ENDPOINT}/documents/orders/${id}`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-Version": "1.0.0",
+      Authorization: token.token_type + " " + token.access_token,
+    },
+  });
   return response;
 }
 
