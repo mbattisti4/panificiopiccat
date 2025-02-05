@@ -40,6 +40,7 @@ export const loadTodos = () => async (dispatch) => {
     // var order = await getOrder("79844d94-13ac-425f-b2b6-ff61d797c45e");
 
     /*console.log("salesModes", salesModes);
+    /*console.log("salesModes", salesModes);
     console.log("customers", customers);
     console.log("organizations", organizations);
     console.log("taxes", taxes);*/
