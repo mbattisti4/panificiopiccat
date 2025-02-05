@@ -7,6 +7,11 @@ export const getCompletedTodos = createSelector([getTodos], (todos) =>
   todos.filter((i) => i.quantity > 0)
 );
 
-export const getUncompletedTodos = createSelector([getTodos], (todos) =>
-  todos.filter((i) => i.quantity == 0)
+export const getTotalAmount = createSelector([getTodos], (todos) =>
+  todos.reduce((a, b) => a + b.quantity * b.prices[0].value, 0)
+);
+
+export const getUncompletedTodos = createSelector(
+  [getTodos],
+  (todos) => todos //.filter((i) => i.quantity == 0)
 );
