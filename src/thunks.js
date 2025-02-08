@@ -1,6 +1,8 @@
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
 import { loadingCompleted, loadingStarted, loadingError } from "./loadingSlice";
 import { todosUpdated } from "./todosSlice";
+import { getTotalAmount } from "./selectors";
 
 const ENDPOINT_LOCAL = "/api";
 const ENDPOINT_CASSANOVA = "https://api.cassanova.com";
@@ -39,7 +41,6 @@ export const loadTodos = () => async (dispatch) => {
     // var orders = await getOrders();
     // var order = await getOrder("79844d94-13ac-425f-b2b6-ff61d797c45e");
 
-    /*console.log("salesModes", salesModes);
     /*console.log("salesModes", salesModes);
     console.log("customers", customers);
     console.log("organizations", organizations);
@@ -98,14 +99,15 @@ export const createTodo = (todo) => async (dispatch, getState) => {
   }
 };
 
-export const placeOrder = () => async (dispatch, getState) => {
+export const placeOrder = (totalAmount) => async (dispatch, getState) => {
   try {
     console.log(
       "thunks - placeOrder",
       getState().todos.value.filter((i) => i.quantity > 0)
     );
     await placeOrderInternal(
-      getState().todos.value.filter((i) => i.quantity > 0)
+      getState().todos.value.filter((i) => i.quantity > 0),
+      totalAmount
     );
     let todosCopy = getState().todos.value.filter((i) => i.id !== 11111111111);
 
@@ -267,11 +269,11 @@ async function deleteData(todo) {
   return response.data;
 }
 
-async function placeOrderInternal(todos) {
+async function placeOrderInternal(todos, totalAmount) {
   console.log("placeOrderInternal", todos);
 
   var token = await getToken();
-  const order = generateOrder(todos);
+  const order = generateOrder(todos, totalAmount);
 
   console.log("placeOrderInternal", order);
   var response = await axios.post(
@@ -312,26 +314,47 @@ function update(arr, id, updatedData) {
   );
 }
 
-function generateOrder(todos) {
-  console.log("generateOrder", todos);
+function generateOrder(todos, totalAmount) {
+  console.log("generateOrder - 0 - ", todos);
+  console.log("generateOrder - 0.0 - ");
+
   var rowsFromProducts = [];
 
   let index = 0;
   todos.forEach((e) => {
-    rowsFromProducts.push({
+    console.log("generateOrder - 0.1 - ");
+    var calculatedQuantity = e.quantity;
+    console.log("generateOrder - 0.2 - ");
+    var notes = "";
+    console.log("generateOrder - 0.3 - ");
+    if (e.soldByWeight === true) {
+      console.log("generateOrder - 1 - ");
+
+      var gramsPerPiece = parseInt(e.externalId);
+      calculatedQuantity = e.quantity * gramsPerPiece / 1000;
+      notes = "prodotto venduto a peso";
+      console.log("generateOrder - 2 - ");
+    }
+    console.log("generateOrder - 3 - ");
+
+    var productSelled = {
       rowNumber: index,
       idProductVariant: e.variants[0].id,
       idDepartment: e.idDepartment,
       idTax: "30049607-cf46-48ee-a284-24b1e361704c", // TODO
       //idSalesMode: "", // TODO
-      quantity: e.quantity,
+      quantity: calculatedQuantity,
       price: e.prices[0].value,
       subtotal: false,
       shippingCost: false,
-      note: "note da utilizzare???",
+      note: notes,
       menu: false,
       composition: false,
-    });
+    };
+
+    console.log("generateOrder - 4 - ");
+
+    rowsFromProducts.push(productSelled);
 
     index++;
   });
@@ -364,7 +387,7 @@ function generateOrder(todos) {
       idOrganization: "6a4fc711-9cc8-4650-a6df-9586ead1250d", // TODO
       idCustomer: "010ef016-236e-45ed-a946-877ddc913084", // TODO
       taxFree: false,
-      amount: 100, // TODO
+      amount: totalAmount, // TODO
       note: "Note documento",
       email: "mbattisti4@gmail.com", // TODO
       rows: rowsFromProducts,

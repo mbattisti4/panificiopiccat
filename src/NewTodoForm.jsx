@@ -71,7 +71,7 @@ export default function NewTodoForm() {
             fullWidth
             variant="contained"
             onClick={() => {
-              dispatch(placeOrder());
+              dispatch(placeOrder(totalAmount));
               setOpen(false);
             }}
           >
